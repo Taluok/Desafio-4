@@ -1,22 +1,34 @@
-const socket = io();
+document.addEventListener('DOMContentLoaded', () => {
+    const socket = io();
 
-// Capturar el envío del formulario
-document.getElementById('product-form').addEventListener('submit', (e) => {
-    e.preventDefault();
-    const title = e.target.title.value;
-    const description = e.target.description.value;
-    const price = parseFloat(e.target.price.value);
+    // Manejar la recepción de productos actualizados desde el servidor
+    socket.on('listUpdate', (products) => {
+        // Limpiar la lista de productos
+        const productList = document.querySelector('ul');
+        productList.innerHTML = '';
 
-    // Enviar los datos al servidor a través de WebSocket
-    socket.emit('addProduct', { title, description, price });
-    e.target.reset(); // Limpiar el formulario
-});
+        // Agregar productos actualizados a la lista
+        products.forEach((product) => {
+            const productElement = document.createElement('li');
+            productElement.innerText = `${product.title} - ${product.description} - $${product.price}`;
+            productList.appendChild(productElement);
+        });
+    });
 
-// Capturar el evento de eliminación de productos
-document.getElementById('product-list').addEventListener('click', (e) => {
-    if (e.target.classList.contains('delete-product')) {
-        const productId = e.target.getAttribute('data-id');
-        // Enviar la solicitud de eliminación al servidor
-        socket.emit('deleteProduct', productId);
-    }
+    // Manejar el envío del formulario para agregar productos
+    const productForm = document.getElementById('productForm');
+    productForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const formData = new FormData(productForm);
+        const productData = {};
+        formData.forEach((value, key) => {
+            productData[key] = value;
+        });
+
+        // Emitir la actualización de productos al servidor a través de WebSockets
+        socket.emit('addProduct', productData);
+
+        // Limpiar el formulario
+        productForm.reset();
+    });
 });

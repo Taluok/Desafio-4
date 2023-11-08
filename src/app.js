@@ -36,15 +36,12 @@ const httpServer = app.listen(PORT, () => {
 const socketServer = new Server(httpServer);
 
 socketServer.on('connection', socket => {
-
-    socket.on('prod', async data => {
-        if (products.length != 0) {
+    socket.on('addProduct', async data => {
+        if (products.length !== 0) {
             products.push(data);
             await fs.promises.writeFile(path, JSON.stringify(products, null, 2));
 
-            //mando la lista actualizada
             socketServer.emit('listUpdate', products);
         }
-
-    })
+    });
 });
